@@ -86,6 +86,7 @@ HTML_TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PrivacyProxy | Stealth Protection Engine</title>
+   <meta name="google-site-verification" content="3HyDALqeLcvgqijdj5i9POxGfahAfhOevt8wotRNig8">
     <style>
         :root {
             --bg-color: #0d1117;
