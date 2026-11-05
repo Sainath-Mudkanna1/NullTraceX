@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NullTraceX | Edge-AI Privacy & Obfuscation Suite</title>
+    
+    <!-- Google Search Console Verification Meta Tag -->
+    <meta name="google-site-verification" content="3HyDALqeLcvgqijdj5i9POxGfahAfhOevt8wotRNig8" />
+
     <style>
         :root {
             --bg-color: #0d1117;
@@ -27,19 +31,19 @@
         }
         .container {
             width: 100%;
-            max-width: 720px;
+            max-width: 760px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 28px;
+            padding: 32px;
             box-shadow: 0 12px 40px rgba(0,0,0,0.6);
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
-        .header h1 { color: #ffffff; font-size: 1.9rem; margin-bottom: 6px; }
-        .header p { color: var(--text-muted); font-size: 0.95rem; margin: 0; }
+        .header h1 { color: #ffffff; font-size: 2.1rem; margin-bottom: 6px; }
+        .header p { color: var(--text-muted); font-size: 1rem; margin: 0; line-height: 1.4; }
         .nav-tabs {
             display: flex;
             gap: 10px;
@@ -51,11 +55,12 @@
             background: #21262d;
             color: var(--text-muted);
             border: 1px solid var(--border-color);
-            padding: 8px 16px;
+            padding: 10px 18px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
         }
         .tab-btn.active {
             background: var(--accent);
@@ -86,22 +91,23 @@
             margin-top: 14px;
             text-align: left;
             background: #161b22;
-            padding: 12px;
+            padding: 14px;
             border-radius: 6px;
             border: 1px solid var(--border-color);
         }
         .controls-group label {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--text-muted);
             display: block;
             margin-bottom: 6px;
+            font-weight: 500;
         }
         .controls-group select, .controls-group input[type="range"] {
             width: 100%;
             background: #0d1117;
             color: var(--text-main);
             border: 1px solid var(--border-color);
-            padding: 8px;
+            padding: 10px;
             border-radius: 4px;
             accent-color: var(--accent);
         }
@@ -116,7 +122,9 @@
             border-radius: 6px;
             cursor: pointer;
             margin-top: 16px;
+            transition: background 0.2s ease;
         }
+        button.action-btn:hover { background: #2ea043; }
         .preview-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -180,6 +188,8 @@
             text-align: center;
             font-size: 0.9rem;
         }
+        .info-section h4 { color: var(--accent); margin-top: 0; font-size: 1rem; }
+        .info-section p, .info-section li { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -188,12 +198,12 @@
     <div class="header">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="NullTraceX Logo" style="height: 48px; margin-bottom: 8px; border-radius: 6px;">
         <h1>NullTraceX</h1>
-        <p>Modular Edge-AI Privacy Studio & Compliance Engine</p>
+        <p>Your Personal Privacy Studio: Protect photos from AI face scrapers and erase hidden tracking data instantly.</p>
     </div>
 
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('visual')">Visual Privacy Studio</button>
-        <button class="tab-btn" onclick="switchTab('compliance')">Security & Compliance</button>
+        <button class="tab-btn" onclick="switchTab('compliance')">How It Works & Benefits</button>
     </div>
 
     {% with messages = get_flashed_messages() %}
@@ -208,36 +218,44 @@
         <form action="/shield" method="post" enctype="multipart/form-data">
             <div class="upload-card">
                 <label for="file-upload" class="custom-file-upload">📁 Select Image Asset</label>
-                <input id="file-upload" type="file" name="file" accept="image/*" onchange="inspectFileLocally()">
+                <input id="file-upload" type="file" name="file" accept="image/*" onchange="inspectFileLocally()" style="display:none;">
                 <div id="file-name" style="color: var(--text-muted); font-size: 0.85rem;">No file chosen (Client-side validation ready)</div>
 
                 <div class="controls-group">
-                    <label for="shield_mode">Select Protection Engine:</label>
+                    <label for="shield_mode">Choose Protection Style:</label>
                     <select id="shield_mode" name="shield_mode">
-                        <option value="global">Global Adversarial Noise Shield</option>
-                        <option value="targeted">Targeted Face Detection & Selective Redaction</option>
+                        <option value="global">Global Noise Shield (Confuses AI, looks normal to humans)</option>
+                        <option value="targeted">Targeted Face Blur (Completely hides face/identity)</option>
                     </select>
                 </div>
 
                 <div class="controls-group">
-                    <label for="noise_slider">Adversarial Noise Scale: <span id="slider-val">1.0x</span></label>
+                    <label for="noise_slider">Privacy Protection Intensity: <span id="slider-val">1.0x</span></label>
                     <input type="range" id="noise_slider" name="noise_scale" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateSlider(this.value)">
                 </div>
 
-                <button type="submit" class="action-btn">Execute NullTraceX Pipeline</button>
+                <button type="submit" class="action-btn">Run NullTraceX Privacy Shield</button>
             </div>
         </form>
     </div>
 
     <div id="compliance-tab" class="tab-content">
-        <div style="background: #0d1117; border: 1px solid var(--border-color); padding: 16px; border-radius: 8px;">
-            <h3 style="margin-top: 0; color: var(--accent); font-size: 1rem;">🛡️ Compliance & Metadata Scrubber Status</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">Active module inspecting headers for EXIF fingerprints, GPS geotags, and device markers.</p>
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 12px 0;">
-            <ul style="padding-left: 18px; font-size: 0.85rem; color: var(--text-main); line-height: 1.5;">
-                <li><strong>EXIF Status:</strong> Active Sanitization Engine</li>
-                <li><strong>Quantitative Metric:</strong> Peak Signal-to-Noise Ratio (PSNR Scoring)</li>
-                <li><strong>Dual Engines:</strong> Global Perturbation & OpenCV Targeted Face Masking</li>
+        <div class="info-section" style="background: #0d1117; border: 1px solid var(--border-color); padding: 18px; border-radius: 8px;">
+            <h4>🛡️ Understanding NullTraceX Privacy Protection</h4>
+            <p>When you share photos online, automated AI bots and facial recognition programs can harvest your biometric identity without permission. Furthermore, hidden file tags (EXIF data) can leak your exact GPS location, timestamps, and camera details.</p>
+            
+            <h4 style="margin-top: 14px;">⚙️ How It Works</h4>
+            <ul style="padding-left: 18px; margin-bottom: 10px;">
+                <li><strong>Metadata Scrubbing:</strong> Instantly deletes hidden tracking data and location markers from the image file.</li>
+                <li><strong>Adversarial Perturbation:</strong> Adds specialized mathematical noise patterns that scramble machine-learning recognition algorithms while keeping the image natural for human viewers.</li>
+                <li><strong>Targeted Redaction:</strong> Automatically detects human faces and applies secure blurring or pixelation to safeguard privacy.</li>
+            </ul>
+
+            <h4 style="margin-top: 14px;">🌟 Key Benefits</h4>
+            <ul style="padding-left: 18px; margin: 0;">
+                <li>Prevent unauthorized facial tracking and automated web scraping.</li>
+                <li>Share memories online safely without exposing private geolocation coordinates.</li>
+                <li>Verify your privacy quality instantly using built-in signal fidelity telemetry (PSNR scoring).</li>
             </ul>
         </div>
     </div>
@@ -255,9 +273,9 @@
     </div>
 
     <div class="metrics-card">
-        <h4>📊 Quantitative Telemetry & Report</h4>
-        <p>Engine Mode: <strong style="color: var(--accent);">{{ shield_mode.capitalize() }} Shield</strong></p>
-        <p style="margin-top: 4px;">PSNR Quality Score: <strong style="color: #3fb950;">{{ psnr_score }} dB</strong> (Higher = Better Fidelity)</p>
+        <h4>📊 Protection Telemetry & Verification Report</h4>
+        <p>Selected Engine: <strong style="color: var(--accent);">{{ shield_mode.capitalize() }} Shield</strong></p>
+        <p style="margin-top: 4px;">Image Fidelity Score (PSNR): <strong style="color: #3fb950;">{{ psnr_score }} dB</strong> (Higher = Better Quality)</p>
         <p style="margin-top: 4px;">{{ metrics_summary }}</p>
     </div>
 
@@ -289,7 +307,7 @@
         if (input.files.length > 0) {
             const file = input.files[0];
             const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-            nameDisplay.innerHTML = `✅ <strong>${file.name}</strong> (${sizeMB} MB) — Client-side inspected & ready.`;
+            nameDisplay.innerHTML = `✅ <strong>${file.name}</strong> (${sizeMB} MB) — Ready for privacy shielding.`;
         }
     }
 </script>
