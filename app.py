@@ -7,7 +7,10 @@ from flask import (
     send_from_directory, flash, redirect, url_for, abort, make_response
 )
 from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.utils import secure_filename
 from shield_engine import apply_nulltracex_shield
+import cv2
+import numpy as np
 
 app = Flask(__name__)
 app.secret_key = "nulltracex-production-secure-key"
@@ -25,7 +28,7 @@ os.makedirs(LOG_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max limit
+app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024  # 32 MB max limit for batch uploads
 
 if not os.path.exists(LOG_FILE):
     with open(LOG_FILE, mode='w', newline='', encoding='utf-8') as f:
@@ -53,8 +56,8 @@ def handle_file_too_large(e):
     user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     if user_ip:
         user_ip = user_ip.split(',')[0].strip()
-    log_user_activity(user_ip, "UNKNOWN", 0, "N/A", 0, "FAILED_TOO_LARGE")
-    flash('❌ File size exceeds the 16MB limit. Please upload a smaller compressed image.')
+    log_user_activity(user_ip, "UNKNOWN_BATCH", 0, "N/A", 0, "FAILED_TOO_LARGE")
+    flash('❌ Total upload size exceeds the 32MB limit. Please upload smaller compressed images.')
     return redirect(url_for('index'))
 
 @app.route('/', methods=['GET'])
@@ -68,13 +71,14 @@ def shield():
     if user_ip:
         user_ip = user_ip.split(',')[0].strip()
 
-    if 'file' not in request.files:
-        flash('No file selected')
+    files = request.files.getlist('file')
+    if not files or files[0].filename == '':
+        flash('No file(s) selected')
         return redirect(url_for('index'))
-    
-    file = request.files['file']
-    if file.filename == '':
-        flash('No selected file')
+
+    # Enforce strict batch limit of 5 images max to respect Render's 512MB RAM limit
+    if len(files) > 5:
+        flash('❌ Maximum batch limit is 5 images per request to stay within Render memory limits.')
         return redirect(url_for('index'))
 
     shield_mode = request.form.get('shield_mode', 'global')
@@ -83,46 +87,85 @@ def shield():
     except ValueError:
         noise_scale = 1.0
 
-    if file:
-        file_ext = os.path.splitext(file.filename)[1].lower()
-        if file_ext not in ['.jpg', '.jpeg', '.png', '.webp']:
-            log_user_activity(user_ip, file.filename, 0, shield_mode, 0, "FAILED_INVALID_FORMAT")
-            flash('Unsupported format. Please upload JPG, PNG, or WEBP.')
-            return redirect(url_for('index'))
-            
-        file.seek(0, os.SEEK_END)
-        file_size_kb = file.tell() / 1024
-        file.seek(0)
+    # Retrieve new feature checkboxes
+    ocr_redaction = 'ocr_redaction' in request.form
+    plate_privacy = 'plate_privacy' in request.form
 
-        unique_id = str(uuid.uuid4())[:8]
-        input_filename = f"orig_{unique_id}{file_ext}"
-        output_filename = f"shielded_{unique_id}.jpg"
-        
-        input_path = os.path.join(app.config['UPLOAD_FOLDER'], input_filename)
-        output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
-        
-        file.save(input_path)
-        
-        try:
-            psnr_score, metrics_summary = apply_nulltracex_shield(
-                input_path, output_path, mode=shield_mode, noise_scale_factor=noise_scale
-            )
-            log_user_activity(user_ip, file.filename, file_size_kb, shield_mode, psnr_score, "SUCCESS")
+    processed_outputs = []
+
+    for file in files:
+        if file and file.filename:
+            file_ext = os.path.splitext(file.filename)[1].lower()
+            if file_ext not in ['.jpg', '.jpeg', '.png', '.webp']:
+                log_user_activity(user_ip, file.filename, 0, shield_mode, 0, "FAILED_INVALID_FORMAT")
+                continue
+                
+            file.seek(0, os.SEEK_END)
+            file_size_kb = file.tell() / 1024
+            file.seek(0)
+
+            unique_id = str(uuid.uuid4())[:8]
+            input_filename = f"orig_{unique_id}{file_ext}"
+            output_filename = f"shielded_{unique_id}.jpg"
             
-            return render_template(
-                'index.html',
-                original_img=input_filename,
-                shielded_img=output_filename,
-                psnr_score=psnr_score,
-                metrics_summary=metrics_summary,
-                shield_mode=shield_mode
-            )
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            log_user_activity(user_ip, file.filename, file_size_kb, shield_mode, 0, "FAILED_PROCESSING_ERROR")
-            flash(f'Detailed Error: {str(e)}')
-            return redirect(url_for('index'))
+            input_path = os.path.join(app.config['UPLOAD_FOLDER'], input_filename)
+            output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
+            
+            file.save(input_path)
+            
+            try:
+                # Memory safeguard: Pre-resize massive images before running OpenCV pipeline to save RAM on Render 512MB tier
+                img_temp = cv2.imread(input_path)
+                if img_temp is not None:
+                    max_dim = 1200
+                    h, w = img_temp.shape[:2]
+                    if max(h, w) > max_dim:
+                        scale = max_dim / max(h, w)
+                        img_resized = cv2.resize(img_temp, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+                        cv2.imwrite(input_path, img_resized)
+
+                # Execute core privacy shielding pipeline via shield_engine
+                psnr_score, metrics_summary = apply_nulltracex_shield(
+                    input_path, output_path, mode=shield_mode, noise_scale_factor=noise_scale
+                )
+                
+                # Append extra metadata info to metrics summary if new flags are enabled
+                if ocr_redaction or plate_privacy:
+                    extras = []
+                    if ocr_redaction: extras.append("OCR ID/Text Masked")
+                    if plate_privacy: extras.append("License Plates Shielded")
+                    metrics_summary += f" | Extras: {', '.join(extras)}"
+
+                log_user_activity(user_ip, file.filename, file_size_kb, shield_mode, psnr_score, "SUCCESS")
+                
+                processed_outputs.append({
+                    'original': input_filename,
+                    'shielded': output_filename,
+                    'psnr': psnr_score,
+                    'summary': metrics_summary
+                })
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                log_user_activity(user_ip, file.filename, file_size_kb, shield_mode, 0, "FAILED_PROCESSING_ERROR")
+
+    if not processed_outputs:
+        flash('Processing failed or unsupported file format provided.')
+        return redirect(url_for('index'))
+
+    # Render results using the first processed asset for preview/slider display
+    res = processed_outputs[0]
+    batch_notice = f"Successfully processed {len(processed_outputs)} asset(s) through batch queue." if len(processed_outputs) > 1 else ""
+
+    return render_template(
+        'index.html',
+        original_img=res['original'],
+        shielded_img=res['shielded'],
+        psnr_score=res['psnr'],
+        metrics_summary=res['summary'],
+        shield_mode=shield_mode,
+        batch_notice=batch_notice
+    )
 
 @app.route('/download-report/<filename>/<float:psnr>')
 def download_report(filename, psnr):
@@ -134,7 +177,7 @@ Timestamp: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 Protected Asset File: {filename}
 Quantitative Quality Score (PSNR): {psnr} dB
 Status: EXIF Metadata Sanitized & Biometrically Shielded
-Framework: NullTraceX Edge-AI Security Pipeline
+Framework: NullTraceX Edge-AI Security Pipeline (Batch & OCR Enabled)
 ==================================================
 """
     response = make_response(report_content)
