@@ -3,8 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NullTraceX | Edge-AI Biometric Privacy Suite</title>
+    
+    <!-- Primary SEO Meta Tags for Google Discovery -->
+    <title>NullTraceX | Edge-AI Biometric Privacy & Image Sanitization Suite</title>
+    <meta name="title" content="NullTraceX | Edge-AI Biometric Privacy & Image Sanitization Suite">
+    <meta name="description" content="NullTraceX is an advanced edge-AI privacy studio that protects your personal photos from AI facial recognition scrapers, strips hidden EXIF GPS location data, and redacts sensitive ID text instantly.">
+    <meta name="keywords" content="face scraping protection, EXIF metadata remover, AI privacy shield, edge AI privacy, DPDP compliance tool, blur faces online, adversarial noise image protection, OCR text redaction, secure photo sharing">
+    <link rel="canonical" href="https://nulltracex.onrender.com/">
+
+    <!-- Google Search Console Verification Meta Tag -->
     <meta name="google-site-verification" content="3HyDALqeLcvgqijdj5i9POxGfahAfhOevt8wotRNig8" />
+
+    <!-- Open Graph Social Media Preview Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nulltracex.onrender.com/">
+    <meta property="og:title" content="NullTraceX | Edge-AI Biometric Privacy Suite">
+    <meta property="og:description" content="Protect your photos from AI face scrapers and erase hidden tracking data instantly with local edge-AI processing.">
 
     <style>
         :root {
@@ -43,7 +57,6 @@
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
         }
 
-        /* Logo Image Container */
         .brand-logo-container {
             text-align: center;
             margin-bottom: 14px;
@@ -75,7 +88,6 @@
             line-height: 1.5;
         }
 
-        /* First-Time Visitor Welcome Banner */
         .welcome-banner {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.05));
             border: 1px solid rgba(59, 130, 246, 0.3);
@@ -91,7 +103,6 @@
         .welcome-banner h3 { margin: 0 0 4px 0; font-size: 0.98rem; color: #60a5fa; }
         .welcome-banner p { margin: 0; font-size: 0.88rem; color: var(--text-muted); line-height: 1.4; }
 
-        /* Navigation Tabs */
         .nav-tabs {
             display: flex;
             gap: 10px;
@@ -118,7 +129,6 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Upload Card Styling */
         .upload-card {
             border: 2px dashed var(--card-border);
             border-radius: 12px;
@@ -215,7 +225,6 @@
 
         button.action-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        /* Interactive Split Comparison Slider */
         .slider-container {
             position: relative;
             width: 100%;
@@ -302,17 +311,15 @@
 <body>
 
 <div class="container">
-    <!-- Loaded logo.png from static folder -->
     <div class="brand-logo-container">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="NullTraceX Logo">
     </div>
 
     <div class="header">
         <h1>NullTraceX</h1>
-        <p>Edge-AI Biometric Privacy & Obfuscation Suite</p>
+        <p>Edge-AI Biometric Privacy & Image Sanitization Suite</p>
     </div>
 
-    <!-- First-Time Visitor Onboarding Welcome Banner -->
     <div class="welcome-banner">
         <span>👋</span>
         <div>
@@ -338,7 +345,6 @@
     <div class="batch-notice">{{ batch_notice }}</div>
     {% endif %}
 
-    <!-- TAB 1: VISUAL PRIVACY STUDIO -->
     <div id="visual-tab" class="tab-content active">
         <form action="/shield" method="post" enctype="multipart/form-data">
             <div class="upload-card">
@@ -374,7 +380,6 @@
         </form>
     </div>
 
-    <!-- TAB 2: FEATURES & HOW IT WORKS -->
     <div id="features-tab" class="tab-content">
         <div class="info-box" style="background: #121826; border: 1px solid var(--card-border); padding: 22px; border-radius: 10px;">
             <h4>🔐 What is NullTraceX?</h4>
@@ -392,7 +397,6 @@
         </div>
     </div>
 
-    <!-- RESULTS SECTION WITH INTERACTIVE COMPARISON SLIDER -->
     {% if original_img and shielded_img %}
     <div class="slider-container" id="comparisonContainer">
         <img src="{{ url_for('uploaded_file', filename=original_img) }}" alt="Original Image">
