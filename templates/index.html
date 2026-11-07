@@ -43,21 +43,17 @@
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
         }
 
-        /* Brand Logo */
-        .brand-logo {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            font-weight: 800;
-            font-size: 1.4rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 14px;
-            margin: 0 auto 16px auto;
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
-            letter-spacing: -1px;
+        /* Logo Image Container */
+        .brand-logo-container {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .brand-logo-container img {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 12px;
         }
 
         .header {
@@ -306,12 +302,14 @@
 <body>
 
 <div class="container">
-    <!-- Restored Brand Logo -->
-    <div class="brand-logo">NX</div>
+    <!-- Loaded logo.png from static folder -->
+    <div class="brand-logo-container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="NullTraceX Logo">
+    </div>
 
     <div class="header">
         <h1>NullTraceX</h1>
-        <p>Edge-AI Biometric Privacy Suite & Compliance Engine (Viksit Bharat@2047)</p>
+        <p>Edge-AI Biometric Privacy & Obfuscation Suite</p>
     </div>
 
     <!-- First-Time Visitor Onboarding Welcome Banner -->
@@ -380,7 +378,7 @@
     <div id="features-tab" class="tab-content">
         <div class="info-box" style="background: #121826; border: 1px solid var(--card-border); padding: 22px; border-radius: 10px;">
             <h4>🔐 What is NullTraceX?</h4>
-            <p>NullTraceX is an indigenous edge-AI privacy studio designed to shield citizens and organizations against unauthorized biometric harvesting, deepfake creation, and illegal GPS/EXIF tracking under the DPDP Act.</p>
+            <p>NullTraceX is an indigenous edge-AI privacy studio designed to shield individuals and organizations against unauthorized biometric harvesting, deepfake creation, and illegal GPS/EXIF tracking.</p>
             
             <h4 style="margin-top: 18px;">⚙️ Core Technologies</h4>
             <ul style="padding-left: 18px; margin-bottom: 10px;">
